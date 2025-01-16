@@ -255,7 +255,7 @@ class animalDataController extends Controller
     public function getLivestockDetails(Request $request, $animalId)
     {
         $timestamp = $request->query('timestamp');
-        //ehe
+        
         // Fetch the animal's data
         $animalData = $this->database->getReference('animalsData')
             ->orderByChild('animalid')
