@@ -1,4 +1,3 @@
-{{-- myproject\resources\views\firebase\animalData\edit.blade.php --}}
 
 @extends('firebase.app')
 
@@ -24,7 +23,7 @@
                             </div>
                         @endif
 
-                        <form action="{{ route('update-animalData', ['id' => $uid]) }}" method="POST">
+                        <form action="{{ route('update-animalData', ['animalKey' => $animalKey]) }}" method="POST">
                             @csrf
                             @method('PUT')
 

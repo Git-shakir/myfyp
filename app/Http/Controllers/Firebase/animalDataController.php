@@ -137,31 +137,65 @@ class animalDataController extends Controller
         return redirect('animalsData')->with('status', 'New Livestock Added Successfully');
     }
 
-    public function edit(Request $request)
-    {
-        $uid = $request->query('uid'); // Get 'uid' from the query string
+    // public function edit(Request $request, $animalKey)
+    // {
+    //     // Log the entire request to debug what is being passed
+    //     Log::info('Edit method called with request data:', $request->all());
+    //     dd($request);
+    //     Log::info('UID from route parameter:', ['animalKey' => $animalKey]);
+    //     // dd($animalKey);
 
-        if (!$uid) {
-            return redirect('animalsData')->with('status', 'UID is missing!');
+    //     // $animalKey = $request->query('uid'); // Get 'uid' from the query string
+    //     // Log::info('UID from query string:', ['uid' => $uid]);
+
+    //     if (!$animalKey) {
+    //         Log::warning('animalKey is missing in the request.');
+    //         return redirect('animalsData')->with('status', 'animalKey is missing!');
+    //     }
+
+    //     // Fetch animal data using the UID
+    //     $editdata = $this->database->getReference('animalsData/' . $animalKey)->getValue();
+
+    //     if (!$editdata) {
+    //         return redirect('animalsData')->with('status', 'Animal data not found!');
+    //     }
+
+    //     // Retrieve scanned timestamp from the query string (if available)
+    //     $scannedTimestamp = $request->query('scanned_timestamp', ''); // Default to an empty string if not provided
+
+    //     // Pass the data to the view
+    //     return view('firebase.animalData.edit', compact('editdata', 'animalKey', 'scannedTimestamp'));
+    // }
+
+    public function edit($animalKey)
+    {
+
+        // Log the route parameter for debugging
+        Log::info('UID from route parameter:', ['animalKey' => $animalKey]);
+
+        if (!$animalKey) {
+            Log::warning('animalKey is missing in the request.');
+            return redirect('animalsData')->with('status', 'animalKey is missing!');
         }
 
         // Fetch animal data using the UID
-        $editdata = $this->database->getReference('animalsData/' . $uid)->getValue();
+        $editdata = $this->database->getReference('animalsData/' . $animalKey)->getValue();
 
         if (!$editdata) {
             return redirect('animalsData')->with('status', 'Animal data not found!');
         }
 
-        // Retrieve scanned timestamp from the query string (if available)
-        $scannedTimestamp = $request->query('scanned_timestamp', ''); // Default to an empty string if not provided
+        // If scanned timestamp is required, remove this block if it's unused
+        $scannedTimestamp = ''; // Default to an empty string or remove this if unused
 
         // Pass the data to the view
-        return view('firebase.animalData.edit', compact('editdata', 'uid', 'scannedTimestamp'));
+        return view('firebase.animalData.edit', compact('editdata', 'animalKey', 'scannedTimestamp'));
     }
 
 
 
-    public function update(Request $request, $id)
+
+    public function update(Request $request, $animalKey)
     {
         // Validation rules
         $request->validate([
@@ -191,7 +225,7 @@ class animalDataController extends Controller
         ]);
 
         // Fetch current data before updating
-        $currentData = $this->database->getReference('animalsData/' . $id)->getValue();
+        $currentData = $this->database->getReference('animalsData/' . $animalKey)->getValue();
 
         if (!$currentData) {
             return redirect('animalsData')->with('status', 'Animal data not found!');
@@ -199,7 +233,7 @@ class animalDataController extends Controller
 
         // Save the current data into the 'history' field with a timestamp
         $timestamp = now()->toDateTimeString();
-        $this->database->getReference('animalsData/' . $id . '/history/' . $timestamp)->set($currentData);
+        $this->database->getReference('animalsData/' . $animalKey . '/history/' . $timestamp)->set($currentData);
 
         $updateData = $request->only([
             'animalid',
@@ -216,24 +250,24 @@ class animalDataController extends Controller
 
         $updateData['processed_at'] = now()->toDateTimeString();
 
-        $this->database->getReference('animalsData/' . $id)->update($updateData);
+        $this->database->getReference('animalsData/' . $animalKey)->update($updateData);
 
         $this->logActivity('Update', 'Update animal with ID ' . $request->animalid, $request->animalid);
 
         return redirect('animalsData')->with('status', 'Livestock Data Updated Successfully');
     }
 
-    public function destroy($id)
+    public function destroy($animalKey)
     {
-        $currentAnimalData = $this->database->getReference('animalsData/' . $id)->getValue();
+        $currentAnimalData = $this->database->getReference('animalsData/' . $animalKey)->getValue();
 
         if (!$currentAnimalData) {
             return redirect('animalsData')->with('status', 'Animal not found');
         }
 
-        $animalId = $currentAnimalData['animalid'] ?? $id;
+        $animalId = $currentAnimalData['animalid'] ?? $animalKey;
 
-        $this->database->getReference('animalsData/' . $id)->remove();
+        $this->database->getReference('animalsData/' . $animalKey)->remove();
 
         $this->logActivity('delete', 'Deleted animal with ID ' . $animalId, $animalId);
 
@@ -255,7 +289,7 @@ class animalDataController extends Controller
     public function getLivestockDetails(Request $request, $animalId)
     {
         $timestamp = $request->query('timestamp');
-        
+
         // Fetch the animal's data
         $animalData = $this->database->getReference('animalsData')
             ->orderByChild('animalid')
