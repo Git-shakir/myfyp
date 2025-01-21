@@ -8,10 +8,15 @@
     <title>Register</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="bg-light">
+<body style="background-color: #5a95d0;">
     <div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
         <div class="card shadow-sm" style="width: 350px;">
             <div class="card-body">
+                <!-- Logo Section -->
+                <div class="text-center mb-3">
+                    <img src="{{ url('images\LivestoCareLogo.png') }}" alt="Logo" style="max-width: 150px;">
+                </div>
+                <!-- End of Logo Section -->
                 <h4 class="card-title text-center mb-3">Register</h4>
                 <form action="{{ route('firebase.register') }}" method="POST">
                     @csrf

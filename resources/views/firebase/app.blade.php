@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>LivestoCare</title>
 
     <!-- Favicon -->
@@ -21,8 +22,11 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/inputmask/5.0.8-beta.0/inputmask.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/inputmask/5.0.7-beta.0/inputmask.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+
+    <script src="{{ asset('js/age-calculator.js') }}"></script>
+
 
     <!-- Custom Styles -->
     <style>
@@ -42,7 +46,7 @@
         }
 
         .footer {
-            background-color: #0080ff;
+            background-color: #00ff40;
             padding: 10px 0;
             text-align: center;
         }
@@ -64,82 +68,11 @@
 
     </div>
 
-    <!-- Firebase Configuration -->
-    {{-- <script>
-        // Load environment variables (if using Node.js)
-        require('dotenv').config();
-
-        console.log('Initializing Firebase...');
-
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: process.env.FIREBASE_API_KEY,
-            authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-            databaseURL: process.env.FIREBASE_DATABASE_URL,
-            projectId: process.env.FIREBASE_PROJECT_ID,
-            storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-            messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-            appId: process.env.FIREBASE_APP_ID,
-        };
-
-        // Log the configuration
-        console.log('Firebase Config:', firebaseConfig);
-
-        // Initialize Firebase
-        try {
-            const app = firebase.initializeApp(firebaseConfig);
-            console.log('Firebase initialized:', app.name);
-        } catch (error) {
-            console.error('Error initializing Firebase:', error);
-        }
-
-        try {
-            const db = firebase.database();
-            console.log('Database initialized:', db);
-        } catch (error) {
-            console.error('Error initializing database:', error);
-        }
-
-        // Listening for triggers
-        try {
-            const dbRef = db.ref('/triggers');
-            console.log('Database reference created for path "/triggers":', dbRef);
-        } catch (error) {
-            console.error('Error creating database reference:', error);
-        }
-
-        // Listen for changes to the 'edit_uid' trigger
-        dbRef.child('edit_uid').on('value', (snapshot) => {
-            const animalKey = snapshot.val();
-            console.log('Snapshot value:', snapshot.val());
-            console.log('Value received from "/triggers":', snapshot.val());
-
-            console.log('edit_uid detected:', animalKey); // Debugging
-            if (animalKey) {
-                console.log('Redirecting to edit page...');
-                window.location.href = `/edit-animalData/${animalKey}`;
-                dbRef.child('edit_uid').remove();
-            }
-        });
-
-        // Listen for changes to the 'new_uid' trigger
-        dbRef.child('new_uid').on('value', (snapshot) => {
-            const uid = snapshot.val();
-            console.log('new_uid detected:', uid); // Debugging
-            if (uid) {
-                console.log('Redirecting to add page...');
-                window.location.href = `/add-animalData?uid=${uid}`;
-                dbRef.child('new_uid').remove();
-            }
-        });
-    </script> --}}
-
     <script>
         // Laravel route URL for editing animal data
-        const editAnimalDataBaseUrl = "{{ route('edit-animalData', ['animalKey' => '__ANIMAL_KEY__']) }}";
+        const editAnimalDataBaseUrl = "{{ route('edit-animalData', ['livestockUid' => '__ANIMAL_KEY__']) }}";
         // Laravel route URL for adding animal data
-        const addAnimalDataBaseUrl = "{{ route('add-animalData', ['uid' => '__ANIMAL_KEY__']) }}";
-
+        const addAnimalDataBaseUrl = "{{ route('add-animalData', ['uid' => '__LIVESTOCK_UID__']) }}";
 
         console.log('Initializing Firebase...');
 
@@ -163,32 +96,102 @@
 
         // Listen for changes to the 'edit_uid' trigger
         dbRef.child('edit_uid').on('value', (snapshot) => {
-            const animalKey = snapshot.val();
-            console.log('Snapshot value:', snapshot.val());
+            const livestockUid = snapshot.val();
+            console.log('edit_uid trigger detected. Animal Key:', livestockUid);
 
-            if (animalKey) {
-                console.log('edit_uid detected:', animalKey);
-                const editUrl = editAnimalDataBaseUrl.replace('__ANIMAL_KEY__', animalKey);
+            if (livestockUid) {
+                // Replace placeholder with the actual livestockUid
+                const editUrl = editAnimalDataBaseUrl.replace('__ANIMAL_KEY__', livestockUid);
                 console.log('Redirecting to edit page:', editUrl);
+
+                // Redirect to the edit page
                 window.location.href = editUrl;
+
+                // Remove the trigger to avoid duplicate redirects
                 dbRef.child('edit_uid').remove()
                     .then(() => console.log('edit_uid trigger removed successfully'))
                     .catch(error => console.error('Error removing edit_uid trigger:', error));
+            } else {
+                console.warn('No livestockUid found in the edit_uid trigger.');
             }
         });
 
         // Listen for changes to the 'new_uid' trigger
         dbRef.child('new_uid').on('value', (snapshot) => {
-            const animalKey = snapshot.val();
-            console.log('new_uid detected:', animalKey);
+            const livestockUid = snapshot.val();
+            console.log('new_uid detected:', livestockUid);
 
-            if (animalKey) {
-                const addUrl = addAnimalDataBaseUrl.replace('__ANIMAL_KEY__', animalKey);
+            if (livestockUid) {
+                const addUrl = addAnimalDataBaseUrl.replace('__LIVESTOCK_UID__', livestockUid);
                 console.log('Redirecting to add page:', addUrl);
                 window.location.href = addUrl;
                 dbRef.child('new_uid').remove()
                     .then(() => console.log('new_uid trigger removed successfully'))
                     .catch(error => console.error('Error removing new_uid trigger:', error));
+            }
+        });
+    </script>
+
+    <!-- Centralized Script -->
+    <script>
+        function calculateAgeDetails(birthDate) {
+            if (!birthDate) return { formattedAge: null, totalMonths: null };
+
+            const birthDateObj = new Date(birthDate);
+
+            // Ensure the date is valid
+            if (isNaN(birthDateObj)) return { formattedAge: null, totalMonths: null };
+
+            const today = new Date();
+            let years = today.getFullYear() - birthDateObj.getFullYear();
+            let months = today.getMonth() - birthDateObj.getMonth();
+            let days = today.getDate() - birthDateObj.getDate();
+
+            // Adjust for negative days
+            if (days < 0) {
+                months -= 1;
+                const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+                days += prevMonth.getDate();
+            }
+
+            // Adjust for negative months
+            if (months < 0) {
+                years -= 1;
+                months += 12;
+            }
+
+            const totalMonths = years * 12 + months; // Calculate total months
+            const formattedAge = `${years} years, ${months} months, ${days} days`;
+
+            return { formattedAge, totalMonths };
+        }
+
+        // Function to dynamically update the age field
+        function updateAgeFields(birthDateSelector, ageDisplaySelector) {
+            const birthDate = document.querySelector(birthDateSelector)?.value;
+
+            if (birthDate) {
+                const { formattedAge } = calculateAgeDetails(birthDate);
+                if (formattedAge) {
+                    document.querySelector(ageDisplaySelector).value = formattedAge;
+                } else {
+                    document.querySelector(ageDisplaySelector).value = '';
+                }
+            }
+        }
+
+        // Example initialization for pages where needed
+        document.addEventListener('DOMContentLoaded', function () {
+            const birthDateInput = document.querySelector('#bdate');
+            const ageDisplayInput = document.querySelector('#age');
+
+            if (birthDateInput && ageDisplayInput) {
+                updateAgeFields('#bdate', '#age');
+
+                // Optional: Add a daily refresh for the age
+                setInterval(() => {
+                    updateAgeFields('#bdate', '#age');
+                }, 24 * 60 * 60 * 1000); // Refresh daily
             }
         });
     </script>

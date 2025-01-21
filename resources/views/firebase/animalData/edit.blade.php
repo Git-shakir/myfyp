@@ -1,4 +1,3 @@
-
 @extends('firebase.app')
 
 @section('content')
@@ -23,17 +22,26 @@
                             </div>
                         @endif
 
-                        <form action="{{ route('update-animalData', ['animalKey' => $animalKey]) }}" method="POST">
+                        <form action="{{ route('update-animalData', ['livestockUid' => $livestockUid]) }}" method="POST">
                             @csrf
                             @method('PUT')
 
                             <!-- Add a hidden input for the scanned timestamp -->
                             <input type="hidden" name="scanned_timestamp" value="{{ $scannedTimestamp }}">
 
-                            <div class="form-group mb-3">
+                            {{-- <div class="form-group mb-3">
                                 <label>Livestock ID</label>
                                 <input type="text" name="animalid" value="{{ $editdata['animalid'] }}"
                                     class="form-control">
+                            </div> --}}
+
+                            <div class="form-group">
+                                <label>Livestock ID</label>
+                                <input type="text" name="animalid" class="form-control"
+                                    value="{{ $editdata['animalid'] }}" class="form-control">
+                                @error('animalid')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
                             </div>
 
                             <div class="form-group mb-3">
@@ -50,11 +58,6 @@
                             <div class="form-group mb-3">
                                 <label>Birth Date</label>
                                 <input type="text" name="bdate" value="{{ $editdata['bdate'] }}" class="form-control">
-                            </div>
-
-                            <div class="form-group mb-3">
-                                <label>Age(Months)</label>
-                                <input type="text" name="age" value="{{ $editdata['age'] }}" class="form-control">
                             </div>
 
                             <div class="form-group mb-3">

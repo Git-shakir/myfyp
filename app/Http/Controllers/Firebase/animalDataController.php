@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Kreait\Firebase\Contract\Database;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Arr;
+use Carbon\Carbon;
+
 
 
 
@@ -21,6 +23,51 @@ class animalDataController extends Controller
         $this->database = $database;
         $this->tablename =  'animalsData';
     }
+
+    public function index()
+    {
+        // Fetch data from Firebase
+        $animalsData = $this->database->getReference($this->tablename)->getValue();
+        $total_animalDatas = $this->database->getReference($this->tablename)->getSnapshot()->numChildren();
+
+        // Add dynamically calculated age to each record
+        foreach ($animalsData as $key => &$item) {
+            if (isset($item['bdate'])) {
+                $item['age'] = $this->calculateAge($item['bdate']);
+            } else {
+                $item['age'] = 'N/A'; // Handle cases where birthdate is missing
+            }
+        }
+
+        return view('firebase.animalData.index', compact('animalsData', 'total_animalDatas'));
+    }
+
+    /**
+     * Calculate the age based on the birthdate (DD-MM-YYYY format).
+     *
+     * @param string $birthDate
+     * @return string
+     */
+    private function calculateAge($birthDate)
+    {
+        try {
+            // Parse the date using the correct format (DD-MM-YYYY)
+            $birthDate = Carbon::createFromFormat('d-m-Y', $birthDate);
+            $now = Carbon::now();
+
+            // Calculate years, months, and days
+            $years = $now->diffInYears($birthDate);
+            $months = $now->diffInMonths($birthDate) % 12;
+            $days = $now->diffInDays($birthDate->copy()->addYears($years)->addMonths($months));
+
+            return "{$years} years, {$months} months, {$days} days";
+        } catch (\Exception $e) {
+            return 'Invalid date'; // Handle invalid dates gracefully
+        }
+    }
+
+
+
 
     public function showAssignments()
     {
@@ -51,8 +98,8 @@ class animalDataController extends Controller
 
             if (!empty($existingAnimal)) {
                 // Existing UID: Set the trigger for editing
-                $animalKey = array_key_first($existingAnimal);
-                $this->database->getReference('/triggers/edit_uid')->set($animalKey);
+                $livestockUid = array_key_first($existingAnimal);
+                $this->database->getReference('/triggers/edit_uid')->set($livestockUid);
 
                 // Mark the UID as processed
                 $this->database->getReference('/uidLogs/' . $key)->update(['processed' => true]);
@@ -67,13 +114,50 @@ class animalDataController extends Controller
     }
 
 
-    public function index()
-    {
-        $animalsData = $this->database->getReference($this->tablename)->getValue();
-        $total_animalDatas = $reference = $this->database->getReference($this->tablename)->getSnapshot()->numChildren();
+    // public function index()
+    // {
+    //     $animalsData = $this->database->getReference($this->tablename)->getValue();
+    //     $total_animalDatas = $reference = $this->database->getReference($this->tablename)->getSnapshot()->numChildren();
 
-        return view('firebase.animalData.index', compact('animalsData', 'total_animalDatas'));
+    //     return view('firebase.animalData.index', compact('animalsData', 'total_animalDatas'));
+    // }
+
+    public function reports(Request $request)
+    {
+        $search = $request->get('search');
+        $filter = $request->get('filter');
+
+        // Fetch all animal data
+        $animalsData = $this->database->getReference($this->tablename)->getValue();
+        $total_animalDatas = $this->database->getReference($this->tablename)->getSnapshot()->numChildren();
+
+        foreach ($animalsData as $key => &$item) {
+            if (isset($item['bdate'])) {
+                $item['age'] = $this->calculateAge($item['bdate']);
+            } else {
+                $item['age'] = 'N/A'; // Handle cases where birthdate is missing
+            }
+        }
+
+        if ($animalsData) {
+            // Filter data
+            $animalsData = collect($animalsData)->filter(function ($item) use ($search, $filter) {
+                if ($search && $filter) {
+                    return stripos($item[$filter] ?? '', $search) !== false;
+                } elseif ($search) {
+                    // Search across all fields
+                    return stripos($item['animalid'] ?? '', $search) !== false ||
+                        stripos($item['species'] ?? '', $search) !== false ||
+                        stripos($item['breed'] ?? '', $search) !== false;
+                }
+                return true;
+            })->toArray();
+        }
+
+        return view('reports', compact('animalsData', 'total_animalDatas'));
     }
+
+
 
     public function create()
     {
@@ -82,104 +166,149 @@ class animalDataController extends Controller
 
     public function store(Request $request)
     {
-        // Validation rules
-        $request->validate([
-            'animalid' => 'required|string|max:255',
-            'species' => 'required|string|max:255',
-            'breed' => 'required|string|max:255',
-            'bdate' => 'required|date_format:d-m-Y',
-            'age' => 'required|integer|min:0', // Must be a number and non-negative
-            'sex' => 'required|string|in:Male,Female', // Accept only Male or Female
-            'weight' => 'required|numeric|min:0', // Must be a positive number
-            'mname' => 'required|string|max:255',
-            'mphone' => 'required|numeric|digits_between:10,15', // Must be numeric and 10-15 digits
-            'flocation' => 'required|string|max:255',
-        ], [
-            'animalid.required' => 'Please provide the Livestock ID.*',
-            'species.required' => 'Please specify the species of the livestock.*',
-            'breed.required' => 'The breed of the livestock is required.*',
-            'bdate.required' => 'The birth date is required.',
-            'bdate.date' => 'Please enter the birth date in the format DD-MM-YYYY.*',
-            'age.required' => 'The age of the livestock is required.*',
-            'age.integer' => 'The age must be a valid number.',
-            'sex.required' => 'Please select the sex of the livestock.*',
-            'weight.required' => 'The weight of the livestock is required.*',
-            'weight.numeric' => 'The weight must be a valid number.*',
-            'weight.min' => 'The weight must be a positive number.',
-            'mname.required' => 'The manager name is required.*',
-            'mphone.required' => 'The manager phone number is required.*',
-            'mphone.numeric' => 'The manager phone number must contain only numbers.*',
-            'mphone.digits_between' => 'The manager phone number must be between 10 and 15 digits.*',
-            'flocation.required' => 'Please provide the farm location.*',
-        ]);
+        Log::info('Store method called'); // Log the method is being triggered
 
+        try {
+            // Validation rules
+            $validated = $request->validate([
+                'animalid' => 'required|string|max:255',
+                'species' => 'required|string|max:255',
+                'breed' => 'required|string|max:255',
+                'bdate' => 'required|date_format:d-m-Y',
+                'sex' => 'required|string|in:Male,Female', // Accept only Male or Female
+                'weight' => 'required|numeric|min:0', // Must be a positive number
+                'mname' => 'required|string|max:255',
+                'mphone' => 'required|numeric|digits_between:10,15', // Must be numeric and 10-15 digits
+                'flocation' => 'required|string|max:255',
+                'temperature' => 'required|string|max:10',
+                'genApp' => 'required|string|in:Normal,Abnormal', // New field: General Appearance
+                'mucous' => 'required|string|in:Normal,Abnormal', // New field: Mucous Membrane
+                'integument' => 'required|string|in:Normal,Abnormal', // New field: Integument
+                'nervous' => 'required|string|in:Normal,Abnormal', // New field: Nervous
+                'musculoskeletal' => 'required|string|in:Normal,Abnormal', // New field: Musculoskeletal
+                'eyes' => 'required|string|in:Normal,Abnormal', // New field: Eyes
+                'ears' => 'required|string|in:Normal,Abnormal', // New field: Ears
+                'gastrointestinal' => 'required|string|in:Normal,Abnormal', // New field: Gastrointestinal
+                'respiratory' => 'required|string|in:Normal,Abnormal', // New field: Respiratory
+                'cardiovascular' => 'required|string|in:Normal,Abnormal', // New field: Cardiovascular
+                'reproductive' => 'required|string|in:Normal,Abnormal', // New field: Reproductive
+                'urinary' => 'required|string|in:Normal,Abnormal', // New field: Urinary
+                'mGland' => 'required|string|in:Normal,Abnormal', // New field: Mammary Gland
+                'lymphatic' => 'required|string|in:Normal,Abnormal', // New field: Lymphatic
+            ], [
+                // Custom error messages
+                'animalid.required' => 'Please provide the Livestock ID.*',
+                'species.required' => 'Please specify the species of the livestock.*',
+                'breed.required' => 'The breed of the livestock is required.*',
+                'bdate.required' => 'The birth date is required.',
+                'bdate.date' => 'Please enter the birth date in the format DD-MM-YYYY.*',
+                'sex.required' => 'Please select the sex of the livestock.*',
+                'weight.required' => 'The weight of the livestock is required.*',
+                'weight.numeric' => 'The weight must be a valid number.*',
+                'weight.min' => 'The weight must be a positive number.',
+                'mname.required' => 'The manager name is required.*',
+                'mphone.required' => 'The manager phone number is required.*',
+                'mphone.numeric' => 'The manager phone number must contain only numbers.*',
+                'mphone.digits_between' => 'The manager phone number must be between 10 and 15 digits.*',
+                'flocation.required' => 'Please provide the farm location.*',
+                'temperature.required' => 'Temperature is required.',
+                'genApp.required' => 'General Appearance is required.',
+                'mucous.required' => 'Mucous Membrane status is required.',
+                'integument.required' => 'Integument status is required.',
+                'nervous.required' => 'Nervous system status is required.',
+                'musculoskeletal.required' => 'Musculoskeletal status is required.',
+                'eyes.required' => 'Eyes status is required.',
+                'ears.required' => 'Ears status is required.',
+                'gastrointestinal.required' => 'Gastrointestinal status is required.',
+                'respiratory.required' => 'Respiratory status is required.',
+                'cardiovascular.required' => 'Cardiovascular status is required.',
+                'reproductive.required' => 'Reproductive status is required.',
+                'urinary.required' => 'Urinary system status is required.',
+                'mGland.required' => 'Mammary Gland status is required.',
+                'lymphatic.required' => 'Lymphatic system status is required.',
+            ]);
+            Log::info('Validation passed.', $validated);
 
-        // Proceed to save data after validation passes
-        $postData = $request->only([
-            'animalid',
-            'species',
-            'breed',
-            'bdate',
-            'age',
-            'sex',
-            'weight',
-            'mname',
-            'mphone',
-            'flocation'
-        ]);
+            // Fetch the latest UID from uidLogs
+            $latestUidLog = $this->database->getReference('uidLogs')
+                ->orderByKey()
+                ->limitToLast(1)
+                ->getValue();
 
-        $postData['processed_at'] = now()->toDateTimeString();
+            $latestUidEntry = reset($latestUidLog); // Get the first (and only) element
+            $uid = $latestUidEntry['uid'] ?? null;
 
-        $this->database->getReference('animalsData')->push($postData);
+            if (!$uid) {
+                throw new \Exception('No UID found in uidLogs.');
+            }
 
-        $this->logActivity('add', 'Added a new animal with ID ' . $request->animalid, $request->animalid);
+            // Proceed to save data after validation passes
+            $postData = $request->only([
+                'animalid',
+                'species',
+                'breed',
+                'bdate',
+                'sex',
+                'weight',
+                'mname',
+                'mphone',
+                'flocation',
+            ]);
 
-        return redirect('animalsData')->with('status', 'New Livestock Added Successfully');
+            // Add UID to the data
+            $postData['uid'] = $uid;
+
+            // Add physical examination details separately
+            $postData['physicalExamination'] = [
+                'temperature' => $request->temperature,
+                'genApp' => $request->genApp,
+                'mucous' => $request->mucous,
+                'integument' => $request->integument,
+                'nervous' => $request->nervous,
+                'musculoskeletal' => $request->musculoskeletal,
+                'eyes' => $request->eyes,
+                'ears' => $request->ears,
+                'gastrointestinal' => $request->gastrointestinal,
+                'respiratory' => $request->respiratory,
+                'cardiovascular' => $request->cardiovascular,
+                'reproductive' => $request->reproductive,
+                'urinary' => $request->urinary,
+                'mGland' => $request->mGland,
+                'lymphatic' => $request->lymphatic,
+                'examined_at' => now()->toDateString(), // Add the current timestamp
+            ];
+
+            $this->database->getReference('animalsData')->push($postData);
+            Log::info('Data pushed to Firebase successfully.', $postData);
+
+            $this->logActivity('add', 'Added a new animal with ID ' . $request->animalid, $request->animalid);
+            Log::info('Activity logged successfully.');
+
+            return redirect()->route('list-animalData')->with('status', 'Livestock added successfully');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation failed:', $e->errors());
+            return redirect()->back()->withErrors($e->errors())->withInput();
+        } catch (\Exception $e) {
+            Log::error('General error occurred:', ['message' => $e->getMessage()]);
+            return redirect()->back()->with('status', 'An error occurred while adding the livestock.');
+        }
     }
 
-    // public function edit(Request $request, $animalKey)
-    // {
-    //     // Log the entire request to debug what is being passed
-    //     Log::info('Edit method called with request data:', $request->all());
-    //     dd($request);
-    //     Log::info('UID from route parameter:', ['animalKey' => $animalKey]);
-    //     // dd($animalKey);
 
-    //     // $animalKey = $request->query('uid'); // Get 'uid' from the query string
-    //     // Log::info('UID from query string:', ['uid' => $uid]);
-
-    //     if (!$animalKey) {
-    //         Log::warning('animalKey is missing in the request.');
-    //         return redirect('animalsData')->with('status', 'animalKey is missing!');
-    //     }
-
-    //     // Fetch animal data using the UID
-    //     $editdata = $this->database->getReference('animalsData/' . $animalKey)->getValue();
-
-    //     if (!$editdata) {
-    //         return redirect('animalsData')->with('status', 'Animal data not found!');
-    //     }
-
-    //     // Retrieve scanned timestamp from the query string (if available)
-    //     $scannedTimestamp = $request->query('scanned_timestamp', ''); // Default to an empty string if not provided
-
-    //     // Pass the data to the view
-    //     return view('firebase.animalData.edit', compact('editdata', 'animalKey', 'scannedTimestamp'));
-    // }
-
-    public function edit($animalKey)
+    public function edit($livestockUid)
     {
 
         // Log the route parameter for debugging
-        Log::info('UID from route parameter:', ['animalKey' => $animalKey]);
+        Log::info('Key from route parameter:', ['livestockUid' => $livestockUid]);
 
-        if (!$animalKey) {
-            Log::warning('animalKey is missing in the request.');
-            return redirect('animalsData')->with('status', 'animalKey is missing!');
+        if (!$livestockUid) {
+            Log::warning('livestockUid is missing in the request.');
+            return redirect('animalsData')->with('status', 'livestockUid is missing!');
         }
 
         // Fetch animal data using the UID
-        $editdata = $this->database->getReference('animalsData/' . $animalKey)->getValue();
+        $editdata = $this->database->getReference('animalsData/' . $livestockUid)->getValue();
+        Log::info('Fetched data for edit:', ['data' => $editdata]);
 
         if (!$editdata) {
             return redirect('animalsData')->with('status', 'Animal data not found!');
@@ -189,13 +318,10 @@ class animalDataController extends Controller
         $scannedTimestamp = ''; // Default to an empty string or remove this if unused
 
         // Pass the data to the view
-        return view('firebase.animalData.edit', compact('editdata', 'animalKey', 'scannedTimestamp'));
+        return view('firebase.animalData.edit', compact('editdata', 'livestockUid', 'scannedTimestamp'));
     }
 
-
-
-
-    public function update(Request $request, $animalKey)
+    public function update(Request $request, $livestockUid)
     {
         // Validation rules
         $request->validate([
@@ -203,44 +329,45 @@ class animalDataController extends Controller
             'species' => 'required|string|max:255',
             'breed' => 'required|string|max:255',
             'bdate' => 'required|date',
-            'age' => 'required|integer|min:0',
             'sex' => 'required|string|in:Male,Female',
             'weight' => 'required|numeric|min:0',
             'mname' => 'required|string|max:255',
             'mphone' => 'required|numeric|digits_between:10,15',
             'flocation' => 'required|string|max:255',
         ], [
-            // Custom messages for mphone
             'mphone.required' => 'The manager phone field is required.',
             'mphone.numeric' => 'The manager phone must be a valid number.',
             'mphone.digits_between' => 'The manager phone must be between 10 and 15 digits.',
-            // Custom messages for flocation
             'flocation.required' => 'The farm location field is required.',
             'flocation.string' => 'The farm location must be a valid string.',
             'flocation.max' => 'The farm location must not exceed 255 characters.',
         ], [
-            // Custom attributes
             'mphone' => 'manager phone',
             'flocation' => 'farm location',
         ]);
 
         // Fetch current data before updating
-        $currentData = $this->database->getReference('animalsData/' . $animalKey)->getValue();
+        $currentData = $this->database->getReference('animalsData/' . $livestockUid)->getValue();
 
         if (!$currentData) {
             return redirect('animalsData')->with('status', 'Animal data not found!');
         }
 
+        // Exclude the 'history' field from the current data
+        if (isset($currentData['history'])) {
+            unset($currentData['history']);
+        }
+
         // Save the current data into the 'history' field with a timestamp
         $timestamp = now()->toDateTimeString();
-        $this->database->getReference('animalsData/' . $animalKey . '/history/' . $timestamp)->set($currentData);
+        $this->database->getReference('animalsData/' . $livestockUid . '/history/' . $timestamp)->set($currentData);
 
+        // Prepare the new data to update
         $updateData = $request->only([
             'animalid',
             'species',
             'breed',
             'bdate',
-            'age',
             'sex',
             'weight',
             'mname',
@@ -248,33 +375,35 @@ class animalDataController extends Controller
             'flocation'
         ]);
 
+        // Add the timestamp for the processed_at field
         $updateData['processed_at'] = now()->toDateTimeString();
 
-        $this->database->getReference('animalsData/' . $animalKey)->update($updateData);
+        // Update the animal data in Firebase
+        $this->database->getReference('animalsData/' . $livestockUid)->update($updateData);
 
+        // Log the activity
         $this->logActivity('Update', 'Update animal with ID ' . $request->animalid, $request->animalid);
 
         return redirect('animalsData')->with('status', 'Livestock Data Updated Successfully');
     }
 
-    public function destroy($animalKey)
+
+    public function destroy($livestockUid)
     {
-        $currentAnimalData = $this->database->getReference('animalsData/' . $animalKey)->getValue();
+        $currentAnimalData = $this->database->getReference('animalsData/' . $livestockUid)->getValue();
 
         if (!$currentAnimalData) {
             return redirect('animalsData')->with('status', 'Animal not found');
         }
 
-        $animalId = $currentAnimalData['animalid'] ?? $animalKey;
+        $animalId = $currentAnimalData['animalid'] ?? $livestockUid;
 
-        $this->database->getReference('animalsData/' . $animalKey)->remove();
+        $this->database->getReference('animalsData/' . $livestockUid)->remove();
 
         $this->logActivity('delete', 'Deleted animal with ID ' . $animalId, $animalId);
 
         return redirect('animalsData')->with('status', 'Livestock Data Deleted Successfully');
     }
-
-
 
 
     public function getUid()
@@ -345,9 +474,6 @@ class animalDataController extends Controller
         return view('firebase.activityLogs.activityIndex', compact('logs'));
     }
 
-
-
-
     public function activityLogs()
     {
         $activityLogs = $this->database->getReference('activityLogs')->getValue();
@@ -381,5 +507,26 @@ class animalDataController extends Controller
         }
 
         return response()->json(['error' => 'Animal not found or no history available'], 404);
+    }
+
+    public function getPhyExamination($animalId)
+    {
+        Log::info("Fetching physical examination data for Animal ID: {$animalId}");
+
+        try {
+            // Fetch physical examination data from Firebase
+            $phyExaminationData = $this->database->getReference("animalsData/{$animalId}/physicalExamination")->getValue();
+
+            if (!$phyExaminationData) {
+                Log::warning("No physical examination data found for Animal ID: {$animalId}");
+                return response()->json([], 200);
+            }
+
+            Log::info("Physical Examination Data Retrieved:", $phyExaminationData);
+            return response()->json($phyExaminationData, 200);
+        } catch (\Exception $e) {
+            Log::error("Error fetching physical examination data: {$e->getMessage()}");
+            return response()->json(['error' => 'Failed to fetch physical examination data.'], 500);
+        }
     }
 }

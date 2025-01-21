@@ -15,14 +15,21 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('animalsData', [animalDataController::class, 'index'])->name('list-animalData');
 Route::get('add-animalData', [animalDataController::class, 'create'])->name('add-animalData');
 Route::post('add-animalData', [animalDataController::class, 'store'])->name('add-animalData-post');
-Route::get('edit-animalData/{animalKey}', [animalDataController::class, 'edit'])->name('edit-animalData');
-Route::put('update-animalData/{animalKey}', [animalDataController::class, 'update'])->name('update-animalData');
-Route::delete('delete-animalData/{animalKey}', [animalDataController::class, 'destroy']);
+Route::get('edit-animalData/{livestockUid}', [animalDataController::class, 'edit'])->name('edit-animalData');
+Route::put('update-animalData/{livestockUid}', [animalDataController::class, 'update'])->name('update-animalData');
+Route::delete('delete-animalData/{livestockUid}', [animalDataController::class, 'destroy']);
+
+Route::get('get-animal-history/{animalId}', [animalDataController::class, 'getAnimalHistory']);
+Route::get('get-phy-examination/{animalId}', [AnimalDataController::class, 'getPhyExamination'])->name('get-phy-examination');
+
 Route::get('rfid-Logs', [animalDataController::class, 'getUid']);
 Route::get('/activity-logs', [animalDataController::class, 'showActivityLogs']);
 Route::get('/get-livestock-details/{animalId}', [animalDataController::class, 'getLivestockDetails']);
 Route::get('/activity-logs', [animalDataController::class, 'showActivityLogs'])->name('activity.logs');
-Route::get('get-animal-history/{animalId}', [animalDataController::class, 'getAnimalHistory']);
+Route::get('/reports', [AnimalDataController::class, 'reports'])->name('reports');
+
+
+
 
 Route::get('/check-tag-trigger', function () {
     $firebase = app('firebase.database');
@@ -55,8 +62,4 @@ Route::get('/welcome', function () {
 Route::get('/settings', function () {
     return view('settings');
 })->name('settings');
-
-Route::get('/reports', function () {
-    return view('reports');
-})->name('reports');
 
