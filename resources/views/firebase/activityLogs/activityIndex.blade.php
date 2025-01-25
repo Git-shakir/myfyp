@@ -5,8 +5,9 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="card mt-2">
-                    <div class="card-header mt-3">
+                    <div class="card-header mt-3 d-flex justify-content-between align-items-center">
                         <h4>Activity Logs</h4>
+                        <button id="clearAllButton" class="btn btn-danger btn-sm">Clear All</button>
                     </div>
                     <div class="card-body"> <!-- Added margin-top here -->
                         <table class="table table-bordered table-striped">
@@ -17,13 +18,13 @@
                                     <th>Livestock ID</th>
                                     <th>Description</th>
                                     <th>Details</th>
+                                    <th>Delete</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @if ($logs)
                                     @foreach ($logs as $key => $log)
-                                        <tr>
-                                            <!-- Fallback to 'N/A' if timestamp is missing -->
+                                        <tr data-key="{{ $key }}">
                                             <td>{{ $log['timestamp'] ?? 'No Timestamp' }}</td>
                                             <td>{{ $log['action'] }}</td>
                                             <td>{{ $log['animal_id'] ?? 'N/A' }}</td>
@@ -35,12 +36,17 @@
                                                     Details
                                                 </button>
                                             </td>
-
+                                            <td>
+                                                <button class="btn btn-danger btn-sm delete-button"
+                                                    data-key="{{ $key }}">
+                                                    Delete
+                                                </button>
+                                            </td>
                                         </tr>
                                     @endforeach
                                 @else
                                     <tr>
-                                        <td colspan="5" class="text-center">No logs found</td>
+                                        <td colspan="6" class="text-center">No logs found</td>
                                     </tr>
                                 @endif
                             </tbody>
@@ -50,63 +56,126 @@
             </div>
         </div>
     </div>
-    <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
+
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="modal" tabindex="-1" style="display: none;">
+        <div class="modal-dialog">
+            <div class="modal-content custom-modal-bg">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="detailsModalLabel">Livestock Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="confirmationModalTitle"></h5>
+                    <button type="button" class="btn-close" onclick="hideConfirmationModal()"></button>
                 </div>
-                <div class="modal-body" id="modal-body">
-                    <!-- Details will be dynamically inserted here -->
+                <div class="modal-body">
+                    <p id="confirmationModalMessage"></p>
+                </div>
+                <div class="modal-footer">
+                    <button id="confirmButton" class="btn btn-danger">Yes</button>
+                    <button type="button" class="btn btn-secondary" onclick="hideConfirmationModal()">Cancel</button>
                 </div>
             </div>
         </div>
     </div>
 
-
     <script>
-        document.querySelectorAll('.details-button').forEach(button => {
+        let modalCallback = null;
+
+        // Show confirmation modal
+        function showConfirmationModal(title, message, callback) {
+            document.getElementById('confirmationModalTitle').innerText = title;
+            document.getElementById('confirmationModalMessage').innerText = message;
+            modalCallback = callback;
+
+            const modal = document.getElementById('confirmationModal');
+            modal.style.display = 'block';
+            modal.classList.add('show');
+        }
+
+        // Hide confirmation modal
+        function hideConfirmationModal() {
+            const modal = document.getElementById('confirmationModal');
+            modal.style.display = 'none';
+            modal.classList.remove('show');
+        }
+
+        // Handle modal confirmation
+        document.getElementById('confirmButton').addEventListener('click', () => {
+            if (modalCallback) {
+                modalCallback();
+                modalCallback = null;
+            }
+            hideConfirmationModal();
+        });
+
+        // Handle delete button click
+        document.querySelectorAll('.delete-button').forEach(button => {
             button.addEventListener('click', () => {
-                const animalId = button.getAttribute('data-animalid');
-                const timestamp = button.getAttribute('data-timestamp');
+                const key = button.getAttribute('data-key');
 
-                if (!animalId || !timestamp) {
-                    alert('No details available for this entry.');
-                    return;
-                }
-
-                fetch(`/get-livestock-details/${animalId}?timestamp=${encodeURIComponent(timestamp)}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Failed to fetch details');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        const modalBody = document.getElementById('modal-body');
-                        modalBody.innerHTML = `
-                        <table class="table table-bordered">
-                            <tr><th>Livestock ID</th><td>${data.animalid}</td></tr>
-                            <tr><th>Species</th><td>${data.species}</td></tr>
-                            <tr><th>Breed</th><td>${data.breed}</td></tr>
-                            <tr><th>Birth Date</th><td>${data.bdate}</td></tr>
-                            <tr><th>Age (Months)</th><td>${data.age}</td></tr>
-                            <tr><th>Sex</th><td>${data.sex}</td></tr>
-                            <tr><th>Weight (kg)</th><td>${data.weight}</td></tr>
-                            <tr><th>Manager Name</th><td>${data.mname}</td></tr>
-                            <tr><th>Manager Phone</th><td>${data.mphone}</td></tr>
-                            <tr><th>Farm Location</th><td>${data.flocation}</td></tr>
-                        </table>
-                        `;
-                        const modal = new bootstrap.Modal(document.getElementById('detailsModal'));
-                        modal.show();
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('Failed to fetch details.');
-                    });
+                showConfirmationModal(
+                    'Confirm Deletion',
+                    'Are you sure you want to delete this log?',
+                    () => {
+                        fetch(`/delete-log/${key}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                                }
+                            })
+                            .then(response => {
+                                if (!response.ok) {
+                                    throw new Error('Failed to delete log');
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                if (data.success) {
+                                    document.querySelector(`tr[data-key="${key}"]`).remove();
+                                } else {
+                                    alert('Failed to delete log');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                alert('Failed to delete log.');
+                            });
+                    }
+                );
             });
+        });
+
+
+        // Handle clear all button click
+        document.getElementById('clearAllButton').addEventListener('click', () => {
+            showConfirmationModal(
+                'Confirm Clear All',
+                'Are you sure you want to clear all logs?',
+                () => {
+                    fetch('/clear-all-logs', {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            }
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Failed to clear logs');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                document.querySelector('tbody').innerHTML =
+                                    '<tr><td colspan="6" class="text-center">No logs found</td></tr>';
+                            } else {
+                                alert('Failed to clear logs');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Failed to clear logs.');
+                        });
+                }
+            );
         });
     </script>
 @endsection

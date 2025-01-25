@@ -6,7 +6,7 @@
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
-                        <h4>Edit Animal Data
+                        <h4>Edit Livestock Data
                             <a href="{{ route('list-animalData') }}" class="btn btn-sm btn-danger float-end">BACK</a>
                         </h4>
                     </div>
@@ -79,12 +79,6 @@
                             <div class="form-group mb-3">
                                 <label>Manager Phone</label>
                                 <input type="text" name="mphone" value="{{ $editdata['mphone'] }}"
-                                    class="form-control">
-                            </div>
-
-                            <div class="form-group mb-3">
-                                <label>Farm Location</label>
-                                <input type="text" name="flocation" value="{{ $editdata['flocation'] }}"
                                     class="form-control">
                             </div>
 

@@ -14,18 +14,47 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h4>Total Livestock: {{ $total_animalDatas ?? '0' }}</h4>
                         <form action="{{ route('reports') }}" method="GET" class="d-flex">
+                            <!-- Search Box -->
                             <input type="text" name="search" class="form-control me-2"
                                 placeholder="Search by ID, Species, etc." value="{{ request()->get('search') }}">
-                            <select name="filter" class="form-select me-2">
-                                <option value="">Filter by...</option>
-                                <option value="species" {{ request()->get('filter') === 'species' ? 'selected' : '' }}>
-                                    Species</option>
-                                <option value="breed" {{ request()->get('filter') === 'breed' ? 'selected' : '' }}>Breed
+
+                            <!-- Species Breakdown -->
+                            <select name="species" class="form-select me-2">
+                                <option value="">Select Species</option>
+                                <option value="Cattle" {{ request()->get('species') === 'Cattle' ? 'selected' : '' }}>Cattle
                                 </option>
-                                <option value="age" {{ request()->get('filter') === 'age' ? 'selected' : '' }}>Age
+                                <option value="Sheep" {{ request()->get('species') === 'Sheep' ? 'selected' : '' }}>Sheep
+                                </option>
+                                <option value="Goat" {{ request()->get('species') === 'Goat' ? 'selected' : '' }}>Goat
+                                </option>
+                                <!-- Add other species as needed -->
+                            </select>
+
+                            <!-- Breed Breakdown -->
+                            <select name="breed" class="form-select me-2">
+                                <option value="">Select Breed</option>
+                                <option value="Angus" {{ request()->get('breed') === 'Angus' ? 'selected' : '' }}>Angus
+                                </option>
+                                <option value="Holstein" {{ request()->get('breed') === 'Holstein' ? 'selected' : '' }}>
+                                    Holstein</option>
+                                <option value="Saanen" {{ request()->get('breed') === 'Saanen' ? 'selected' : '' }}>Saanen
+                                </option>
+                                <!-- Add other breeds as needed -->
+                            </select>
+
+                            <!-- Sex Dropdown -->
+                            <select name="sex" class="form-select me-2">
+                                <option value="">Select Sex</option>
+                                <option value="Male" {{ request()->get('sex') === 'Male' ? 'selected' : '' }}>Male
+                                </option>
+                                <option value="Female" {{ request()->get('sex') === 'Female' ? 'selected' : '' }}>Female
                                 </option>
                             </select>
+
+                            <!-- Buttons -->
                             <button type="submit" class="btn btn-primary">Search</button>
+                            <a href="{{ route('generate-pdf', request()->all()) }}"
+                                class="btn btn-success float-end">Download PDF</a>
                         </form>
                     </div>
                     <div class="card-body">
@@ -38,7 +67,6 @@
                             <table class="table table-bordered">
                                 <thead class="table table-primary">
                                     <tr>
-                                        {{-- <th>Date</th> --}}
                                         <th>Livestock ID</th>
                                         <th>Species</th>
                                         <th>Breed</th>
@@ -48,7 +76,6 @@
                                         <th>Weight (kg)</th>
                                         <th>Manager Name</th>
                                         <th>Manager Phone</th>
-                                        <th>Farm Location</th>
                                         <th>Checkup</th>
                                         <th>Data History</th>
                                     </tr>
@@ -56,28 +83,22 @@
                                 <tbody>
                                     @foreach ($animalsData as $key => $item)
                                         <tr>
-                                            {{-- <td>{{ $item['processed_at'] ?? 'N/A' }}</td> --}}
                                             <td>{{ $item['animalid'] }}</td>
                                             <td>{{ $item['species'] }}</td>
                                             <td>{{ $item['breed'] }}</td>
                                             <td>{{ $item['bdate'] }}</td>
-                                            <td>{{ $item['age'] }}</td>
+                                            <td>{{ $item['age'] ?? 'N/A' }}</td>
                                             <td>{{ $item['sex'] }}</td>
                                             <td>{{ $item['weight'] }}</td>
                                             <td>{{ $item['mname'] }}</td>
                                             <td>{{ $item['mphone'] }}</td>
-                                            <td>{{ $item['flocation'] }}</td>
                                             <td>
                                                 <button class="btn btn-sm btn-info phyExamination-button"
-                                                    data-animalid="{{ $key }}">
-                                                    Details
-                                                </button>
+                                                    data-animalid="{{ $key }}">Details</button>
                                             </td>
                                             <td>
                                                 <button class="btn btn-sm btn-primary history-button"
-                                                    data-animalid="{{ $item['animalid'] }}">
-                                                    View
-                                                </button>
+                                                    data-animalid="{{ $item['animalid'] }}">View</button>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -86,6 +107,8 @@
                         @endif
                     </div>
                 </div>
+
+
             </div>
         </div>
     </div>
@@ -148,7 +171,7 @@
                     .then(data => {
                         const modalBody = document.getElementById('historyModalBody');
                         if (Object.keys(data).length === 0) {
-                            modalBody.innerHTML = `<p>No history available for this animal.</p>`;
+                            modalBody.innerHTML = `<p>No history available for this livestock.</p>`;
                         } else {
                             modalBody.innerHTML = `<table class="table table-bordered">
                                 <thead>
@@ -165,17 +188,16 @@
                                 </thead>
                                 <tbody>
                                     ${Object.entries(data).map(([timestamp, history]) => `
-                                                                                                    <tr>
-                                                                                                        <td>${timestamp}</td>
-                                                                                                        <td>${history.animalid}</td>
-                                                                                                        <td>${history.species}</td>
-                                                                                                        <td>${history.breed}</td>
-                                                                                                        <td>${history.age}</td>
-                                                                                                        <td>${history.sex}</td>
-                                                                                                        <td>${history.weight}</td>
-                                                                                                        <td>${history.flocation}</td>
-                                                                                                    </tr>
-                                                                                                `).join('')}
+                                                                                                                <tr>
+                                                                                                                    <td>${timestamp}</td>
+                                                                                                                    <td>${history.animalid}</td>
+                                                                                                                    <td>${history.species}</td>
+                                                                                                                    <td>${history.breed}</td>
+                                                                                                                    <td>${history.age}</td>
+                                                                                                                    <td>${history.sex}</td>
+                                                                                                                    <td>${history.weight}</td>
+                                                                                                                </tr>
+                                                                                                            `).join('')}
                                 </tbody>
                             </table>`;
                         }
@@ -193,30 +215,36 @@
     <script>
         document.querySelectorAll('.phyExamination-button').forEach(button => {
             button.addEventListener('click', () => {
-                const animalId = button.getAttribute('data-animalid');
+                const livestockUid = button.getAttribute('data-animalid'); // Get the animal ID
+                console.log("Fetching checkup data for animalId:", livestockUid);
+
                 const modalBody = document.getElementById('phyExaminationModalBody');
 
-                // Show loading state
+                // Show loading state in the modal
                 modalBody.innerHTML = '<p>Loading physical examination data...</p>';
 
-                fetch(`/get-phy-examination/${animalId}`)
+                // Fetch the physical examination data for the animal
+                fetch(`/get-checkup-data/${livestockUid }`)
                     .then(response => {
                         if (!response.ok) {
-                            throw new Error('Failed to fetch physical examination data');
+                            throw new Error('Failed to fetch checkup data');
                         }
                         return response.json();
                     })
                     .then(data => {
-                        console.log("Fetched Physical Examination Data:", data); // Log the fetched data
+                        console.log("Fetched Checkup Data:", data);
 
+                        // Check if the data is empty
                         if (Object.keys(data).length === 0) {
                             modalBody.innerHTML =
-                                `<p>No physical examination data available for this animal.</p>`;
+                                '<p>This livestock has not undergone any physical examination yet.</p>';
                         } else {
-                            modalBody.innerHTML = `<table class="table table-bordered">
+                            // Build a table to display the data
+                            modalBody.innerHTML = `
+                    <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th>Date</th>
+                                <th>Examined At</th>
                                 <th>Temperature</th>
                                 <th>General Appearance</th>
                                 <th>Mucous Membrane</th>
@@ -235,24 +263,29 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>${data.examined_at ?? 'N/A'}</td>
-                                <td>${data.temperature ?? 'N/A'}</td>
-                                <td>${data.genApp ?? 'N/A'}</td>
-                                <td>${data.mucous ?? 'N/A'}</td>
-                                <td>${data.integument ?? 'N/A'}</td>
-                                <td>${data.nervous ?? 'N/A'}</td>
-                                <td>${data.musculoskeletal ?? 'N/A'}</td>
-                                <td>${data.eyes ?? 'N/A'}</td>
-                                <td>${data.ears ?? 'N/A'}</td>
-                                <td>${data.gastrointestinal ?? 'N/A'}</td>
-                                <td>${data.respiratory ?? 'N/A'}</td>
-                                <td>${data.cardiovascular ?? 'N/A'}</td>
-                                <td>${data.reproductive ?? 'N/A'}</td>
-                                <td>${data.urinary ?? 'N/A'}</td>
-                                <td>${data.mGland ?? 'N/A'}</td>
-                                <td>${data.lymphatic ?? 'N/A'}</td>
-                            </tr>
+                            ${Object.keys(data).map(checkupId => {
+                                const checkup = data[checkupId];
+                                return `
+                                                            <tr>
+                                                                <td>${checkup.examined_at ?? 'N/A'}</td>
+                                                                <td>${checkup.temperature ?? 'N/A'}</td>
+                                                                <td>${checkup.genApp ?? 'N/A'}</td>
+                                                                <td>${checkup.mucous ?? 'N/A'}</td>
+                                                                <td>${checkup.integument ?? 'N/A'}</td>
+                                                                <td>${checkup.nervous ?? 'N/A'}</td>
+                                                                <td>${checkup.musculoskeletal ?? 'N/A'}</td>
+                                                                <td>${checkup.eyes ?? 'N/A'}</td>
+                                                                <td>${checkup.ears ?? 'N/A'}</td>
+                                                                <td>${checkup.gastrointestinal ?? 'N/A'}</td>
+                                                                <td>${checkup.respiratory ?? 'N/A'}</td>
+                                                                <td>${checkup.cardiovascular ?? 'N/A'}</td>
+                                                                <td>${checkup.reproductive ?? 'N/A'}</td>
+                                                                <td>${checkup.urinary ?? 'N/A'}</td>
+                                                                <td>${checkup.mGland ?? 'N/A'}</td>
+                                                                <td>${checkup.lymphatic ?? 'N/A'}</td>
+                                                            </tr>
+                                                        `;
+                            }).join('')}
                         </tbody>
                     </table>`;
                         }
@@ -263,9 +296,9 @@
                         modal.show();
                     })
                     .catch(error => {
-                        console.error('Error fetching physical examination data:', error);
+                        console.error('Error fetching checkup data:', error);
                         modalBody.innerHTML =
-                            `<p class="text-danger">Failed to fetch physical examination data.</p>`;
+                            '<p class="text-danger">Failed to fetch checkup data.</p>';
                     });
             });
         });

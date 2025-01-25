@@ -2,7 +2,7 @@
 
     <div class="container-fluid">
         <!-- Favicon -->
-        <img src="{{ url('images/LivestoCareLogo.png') }}" alt="LivestoCare Logo" width="30" height="30"
+        <img src="{{ url('images/LivestoCare Logo.png') }}" alt="LivestoCare Logo" width="30" height="30"
             class="me-2">
         <a class="navbar-brand nav-link" href="#">LivestoCare</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
@@ -56,10 +56,10 @@
                     <a class="nav-link {{ Request::is('reports') ? 'active-link' : '' }}"
                         href="{{ url('reports') }}">Reports</a>
                 </li>
-
                 <li class="nav-item">
-                    <a class="nav-link {{ Request::is('settings') ? 'active-link' : '' }}"
-                        href="{{ url('settings') }}">Settings</a>
+                    <button type="button" class="btn nav-link" data-bs-toggle="modal" data-bs-target="#profileModal">
+                        Profile
+                    </button>
                 </li>
 
                 <form action="{{ route('logout') }}" method="POST" class="ms-3 d-inline"
@@ -93,6 +93,26 @@
         </div>
     </div>
 </nav>
+
+<!-- Modal -->
+<div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content custom-modal-bg">
+            <div class="modal-header">
+                <h5 class="modal-title" id="profileModalLabel">User Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h5>Name: {{ session('firebase_user.displayName', 'N/A') }}</h5>
+                <h5>Email: {{ session('firebase_user.email', 'N/A') }}</h5>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <script>
     function showLogoutModal() {

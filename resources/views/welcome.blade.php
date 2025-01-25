@@ -125,7 +125,7 @@
         <div class="container">
             <div class="text-center mb-5">
                 <h2>LivestoCare Features</h2>
-                <p>Discover the tools we offer to simplify livestock management through our web platform.</p>
+                <p>Discover a tools that offer simplify livestock management through web platform.</p>
             </div>
             <div class="row text-center">
                 <div class="col-md-4">
@@ -140,7 +140,7 @@
                 </div>
                 <div class="col-md-4">
                     <i class="fas fa-chart-bar text-success"></i>
-                    <h4>Data Insights</h4>
+                    <h4>Ease Data Analyzation</h4>
                     <p>Analyze livestock performance and trends to make informed decisions.</p>
                 </div>
             </div>
@@ -153,7 +153,7 @@
             <h2>How to Use LivestoCare</h2>
             <ul>
                 <li><i class="fas fa-sign-in-alt"></i> <strong>Register or Log In:</strong> Create an account or log in using your credentials.</li>
-                <li><i class="fas fa-upload"></i> <strong>Add Livestock Data:</strong> Input details about your livestock, including tags and performance data.</li>
+                <li><i class="fas fa-upload"></i> <strong>Add Livestock Data:</strong> Input details about your livestock using their individual RFID tags.</li>
                 <li><i class="fas fa-chart-line"></i> <strong>Analyze Insights:</strong> Use our analytics dashboard to track trends and performance.</li>
                 <li><i class="fas fa-bell"></i> <strong>Set Alerts:</strong> Receive notifications for important events such as health checks or milestones.</li>
             </ul>
@@ -174,7 +174,7 @@
             </div>
             <div class="faq-item">
                 <h4>Can I export my data?</h4>
-                <p>Yes, you can export your livestock data in CSV format from the dashboard settings.</p>
+                <p>Yes, you can export your livestock data in Pdf format from the reports page.</p>
             </div>
         </div>
     </section>

@@ -8,7 +8,7 @@
     <title>LivestoCare</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ url('images\LivestoCareLogo.png') }}" />
+    <link rel="icon" type="image/png" href="{{ url('images\LivestoCare Logo.png') }}" />
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet"
@@ -69,8 +69,8 @@
     </div>
 
     <script>
-        // Laravel route URL for editing animal data
-        const editAnimalDataBaseUrl = "{{ route('edit-animalData', ['livestockUid' => '__ANIMAL_KEY__']) }}";
+        // Laravel route URL for Livestock Checkup
+        const checkupAnimalDataBaseUrl = "{{ route('checkup-animal', ['livestockUid' => '__ANIMAL_KEY__']) }}";
         // Laravel route URL for adding animal data
         const addAnimalDataBaseUrl = "{{ route('add-animalData', ['uid' => '__LIVESTOCK_UID__']) }}";
 
@@ -101,11 +101,11 @@
 
             if (livestockUid) {
                 // Replace placeholder with the actual livestockUid
-                const editUrl = editAnimalDataBaseUrl.replace('__ANIMAL_KEY__', livestockUid);
-                console.log('Redirecting to edit page:', editUrl);
+                const checkupUrl = checkupAnimalDataBaseUrl.replace('__ANIMAL_KEY__', livestockUid);
+                console.log('Redirecting to checkup page:', checkupUrl);
 
-                // Redirect to the edit page
-                window.location.href = editUrl;
+                // Redirect to the checkup page
+                window.location.href = checkupUrl;
 
                 // Remove the trigger to avoid duplicate redirects
                 dbRef.child('edit_uid').remove()
@@ -131,6 +131,7 @@
             }
         });
     </script>
+
 
     <!-- Centralized Script -->
     <script>
