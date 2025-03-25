@@ -1,69 +1,68 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>Livestock Report</title>
     <style>
         table {
             width: 100%;
             border-collapse: collapse;
         }
-
-        table,
-        th,
-        td {
+        th, td {
             border: 1px solid black;
-        }
-
-        th,
-        td {
             padding: 8px;
             text-align: left;
         }
-
         th {
             background-color: #f2f2f2;
         }
+        img {
+            width: 100%;
+            max-height: 150px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-top: 5px;
+        }
+        h1 {
+            font-size: 20px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
     </style>
 </head>
-
 <body>
+    <div class="header">
+        <img src="{{ public_path('images/Header Borang.png') }}" alt="Header Image">
+    </div>
+
+    <h1>Livestock Report</h1>
+
     <table>
         <thead>
             <tr>
                 <th>Livestock ID</th>
                 <th>Species</th>
                 <th>Breed</th>
-                <th>Birth Date</th>
                 <th>Age</th>
                 <th>Sex</th>
-                <th>Weight (kg)</th>
                 <th>Manager Name</th>
                 <th>Manager Phone</th>
             </tr>
         </thead>
         <tbody>
-            @forelse ($animalsData as $item)
+            @foreach ($animalsData as $animal)
                 <tr>
-                    <td>{{ $item['animalid'] ?? 'N/A' }}</td>
-                    <td>{{ $item['species'] ?? 'N/A' }}</td>
-                    <td>{{ $item['breed'] ?? 'N/A' }}</td>
-                    <td>{{ $item['bdate'] ?? 'N/A' }}</td>
-                    <td>{{ $item['age'] ?? 'N/A' }}</td>
-                    <td>{{ $item['sex'] ?? 'N/A' }}</td>
-                    <td>{{ $item['weight'] ?? 'N/A' }}</td>
-                    <td>{{ $item['mname'] ?? 'N/A' }}</td>
-                    <td>{{ $item['mphone'] ?? 'N/A' }}</td>
+                    <td>{{ $animal['animalid'] ?? 'N/A' }}</td>
+                    <td>{{ $animal['species'] ?? 'N/A' }}</td>
+                    <td>{{ $animal['breed'] ?? 'N/A' }}</td>
+                    <td>{{ $animal['age'] ?? 'N/A' }}</td>
+                    <td>{{ $animal['sex'] ?? 'N/A' }}</td>
+                    <td>{{ $animal['mname'] ?? 'N/A' }}</td>
+                    <td>{{ $animal['mphone'] ?? 'N/A' }}</td>
                 </tr>
-            @empty
-                <tr>
-                    <td colspan="10">No data available</td>
-                </tr>
-            @endforelse
+            @endforeach
         </tbody>
     </table>
-
 </body>
-
 </html>

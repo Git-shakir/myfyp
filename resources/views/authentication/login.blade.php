@@ -16,7 +16,7 @@
             <div class="card-body">
                 <!-- Logo Section -->
                 <div class="text-center mb-3">
-                    <img src="{{ url('images\LivestoCare Logo.png') }}" alt="Logo" style="max-width: 150px;">
+                    <img src="{{ url('images/LivestoCare Logo.png') }}" alt="Logo" class="img-fluid" style="max-width: 150px;">
                 </div>
                 <!-- End of Logo Section -->
 

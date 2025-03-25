@@ -1,4 +1,4 @@
-{{-- Path: resources/views/auth/register.blade.php --}}
+{{-- Path: resources/views/authentication/register.blade.php --}}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -19,9 +19,19 @@
                     <img src="{{ url('images\LivestoCare Logo.png') }}" alt="Logo" style="max-width: 150px;">
                 </div>
                 <!-- End of Logo Section -->
-                <h4 class="card-title text-center mb-3">Register</h4>
                 <form action="{{ route('firebase.register') }}" method="POST">
                     @csrf
+                    <div class="form-group mb-3">
+                        <label for="role">Role</label>
+                        <select name="role" id="role" class="form-control" required>
+                            <option value="" disabled selected>Select your role</option>
+                            <option value="farmer">Farmer</option>
+                            <option value="clinician">Clinician</option>
+                        </select>
+                        @error('role')
+                            <small class="text-danger">{{ $message }}</small>
+                        @enderror
+                    </div>
                     <div class="form-group mb-3">
                         <label for="name">Name</label>
                         <input type="text" name="name" id="name" class="form-control"

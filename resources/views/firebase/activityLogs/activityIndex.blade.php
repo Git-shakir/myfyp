@@ -17,7 +17,6 @@
                                     <th>Action</th>
                                     <th>Livestock ID</th>
                                     <th>Description</th>
-                                    <th>Details</th>
                                     <th>Delete</th>
                                 </tr>
                             </thead>
@@ -30,13 +29,6 @@
                                             <td>{{ $log['animal_id'] ?? 'N/A' }}</td>
                                             <td>{{ $log['description'] }}</td>
                                             <td>
-                                                <button class="btn btn-info btn-sm details-button"
-                                                    data-animalid="{{ $log['animal_id'] ?? '' }}"
-                                                    data-timestamp="{{ $log['timestamp'] ?? '' }}">
-                                                    Details
-                                                </button>
-                                            </td>
-                                            <td>
                                                 <button class="btn btn-danger btn-sm delete-button"
                                                     data-key="{{ $key }}">
                                                     Delete
@@ -46,7 +38,7 @@
                                     @endforeach
                                 @else
                                     <tr>
-                                        <td colspan="6" class="text-center">No logs found</td>
+                                        <td colspan="6" class="text-center">No activity found</td>
                                     </tr>
                                 @endif
                             </tbody>
@@ -165,7 +157,7 @@
                         .then(data => {
                             if (data.success) {
                                 document.querySelector('tbody').innerHTML =
-                                    '<tr><td colspan="6" class="text-center">No logs found</td></tr>';
+                                    '<tr><td colspan="6" class="text-center">No activity found</td></tr>';
                             } else {
                                 alert('Failed to clear logs');
                             }

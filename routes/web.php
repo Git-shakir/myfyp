@@ -36,14 +36,15 @@ Route::get('rfid-Logs', [animalDataController::class, 'getUid']);
 Route::get('/activity-logs', [animalDataController::class, 'showActivityLogs']);
 Route::get('/get-livestock-details/{animalId}', [animalDataController::class, 'getLivestockDetails']);
 Route::get('/activity-logs', [animalDataController::class, 'showActivityLogs'])->name('activity.logs');
-Route::get('/reports', [animalDataController::class, 'reports'])->name('reports');
+Route::get('/reports', [reportController::class, 'reports'])->name('reports');
 
 Route::get('/animal/checkup/{livestockUid}', [animalDataController::class, 'checkup'])->name('checkup-animal');
 Route::post('/animal/checkup', [animalDataController::class, 'storeCheckup'])->name('add-checkup-post');
 
-Route::get('/get-checkup-data/{livestockUid}', [animalDataController::class, 'getCheckupData']);
+Route::get('/get-checkup-data/{animalId}', [animalDataController::class, 'getCheckupData']);
 
 Route::get('/generate-pdf', [ReportController::class, 'generatePdf'])->name('generate-pdf');
+Route::get('/animal/{animalId}/report', [ReportController::class, 'generateIndividualPdf'])->name('animal.report');
 
 
 

@@ -136,12 +136,18 @@
     <!-- Centralized Script -->
     <script>
         function calculateAgeDetails(birthDate) {
-            if (!birthDate) return { formattedAge: null, totalMonths: null };
+            if (!birthDate) return {
+                formattedAge: null,
+                totalMonths: null
+            };
 
             const birthDateObj = new Date(birthDate);
 
             // Ensure the date is valid
-            if (isNaN(birthDateObj)) return { formattedAge: null, totalMonths: null };
+            if (isNaN(birthDateObj)) return {
+                formattedAge: null,
+                totalMonths: null
+            };
 
             const today = new Date();
             let years = today.getFullYear() - birthDateObj.getFullYear();
@@ -164,7 +170,10 @@
             const totalMonths = years * 12 + months; // Calculate total months
             const formattedAge = `${years} years, ${months} months, ${days} days`;
 
-            return { formattedAge, totalMonths };
+            return {
+                formattedAge,
+                totalMonths
+            };
         }
 
         // Function to dynamically update the age field
@@ -172,7 +181,9 @@
             const birthDate = document.querySelector(birthDateSelector)?.value;
 
             if (birthDate) {
-                const { formattedAge } = calculateAgeDetails(birthDate);
+                const {
+                    formattedAge
+                } = calculateAgeDetails(birthDate);
                 if (formattedAge) {
                     document.querySelector(ageDisplaySelector).value = formattedAge;
                 } else {
@@ -182,7 +193,7 @@
         }
 
         // Example initialization for pages where needed
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             const birthDateInput = document.querySelector('#bdate');
             const ageDisplayInput = document.querySelector('#age');
 
@@ -196,7 +207,6 @@
             }
         });
     </script>
-
 </body>
 
 </html>

@@ -3,9 +3,9 @@
 @section('content')
     <style>
         .welcome-background {
-            background-image: url('{{ asset('images/image2.png') }}');
+            background-image: url('{{ asset('images/livestock farm bg.png') }}');
             background-size: cover;
-            background-position: bottom;
+            background-position: center;
             background-repeat: no-repeat;
             position: relative;
             height: 50vh;
@@ -17,16 +17,6 @@
             padding-top: 100px;
             text-align: center;
             color: rgb(0, 0, 0);
-        }
-
-        .welcome-overlay {
-            background-color: rgba(255, 255, 255, 0.632);
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
         }
 
         .hero-title {
@@ -125,56 +115,24 @@
         <div class="container">
             <div class="text-center mb-5">
                 <h2>LivestoCare Features</h2>
-                <p>Discover a tools that offer simplify livestock management through web platform.</p>
+                <p>Discover tools that simplify livestock management through an intuitive web platform.</p>
             </div>
             <div class="row text-center">
                 <div class="col-md-4">
                     <i class="fas fa-database text-primary"></i>
                     <h4>Centralized Livestock Records</h4>
-                    <p>Manage and organize your livestock data all in one place with ease.</p>
+                    <p>Effortlessly manage and organize livestock data, including species, breed, age, and health details, all in one platform.</p>
                 </div>
                 <div class="col-md-4">
                     <i class="fas fa-tags text-warning"></i>
                     <h4>RFID Integration</h4>
-                    <p>Efficiently track and identify livestock using RFID tags integrated into the platform.</p>
+                    <p>Accurately identify the livestock using RFID tags.</p>
                 </div>
                 <div class="col-md-4">
                     <i class="fas fa-chart-bar text-success"></i>
-                    <h4>Ease Data Analyzation</h4>
-                    <p>Analyze livestock performance and trends to make informed decisions.</p>
+                    <h4>Health Check-Up Management</h4>
+                    <p>Enable clinicians to conduct detailed physical checkup and store results for each livestock, ensuring comprehensive care.</p>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- How to Use Section -->
-    <section class="how-to-use">
-        <div class="container">
-            <h2>How to Use LivestoCare</h2>
-            <ul>
-                <li><i class="fas fa-sign-in-alt"></i> <strong>Register or Log In:</strong> Create an account or log in using your credentials.</li>
-                <li><i class="fas fa-upload"></i> <strong>Add Livestock Data:</strong> Input details about your livestock using their individual RFID tags.</li>
-                <li><i class="fas fa-chart-line"></i> <strong>Analyze Insights:</strong> Use our analytics dashboard to track trends and performance.</li>
-                <li><i class="fas fa-bell"></i> <strong>Set Alerts:</strong> Receive notifications for important events such as health checks or milestones.</li>
-            </ul>
-        </div>
-    </section>
-
-    <!-- FAQ Section -->
-    <section class="faq-section">
-        <div class="container">
-            <h2>Frequently Asked Questions</h2>
-            <div class="faq-item">
-                <h4>How do I add new livestock data?</h4>
-                <p>Navigate to the "Add Data" section in the dashboard, fill out the required fields, and submit.</p>
-            </div>
-            <div class="faq-item">
-                <h4>What is RFID integration?</h4>
-                <p>RFID integration allows you to use tags for seamless livestock tracking and identification.</p>
-            </div>
-            <div class="faq-item">
-                <h4>Can I export my data?</h4>
-                <p>Yes, you can export your livestock data in Pdf format from the reports page.</p>
             </div>
         </div>
     </section>

@@ -20,102 +20,81 @@
                         @if (empty($animalsData))
                             <div class="text-center p-3">
                                 <h5>No Livestock Found</h5>
-                                <p>Start by adding a new livestock record.</p>
+                                <p>Start adding a new livestock record by scanning a new rfid tag</p>
                             </div>
                         @else
-                        <div style="overflow-x: auto;">
-                            <table class="table table-bordered">
-                                <thead class="table table-primary">
-                                    <tr>
-                                        {{-- <th>Date</th> --}}
-                                        <th>Livestock ID</th>
-                                        <th>Species</th>
-                                        <th>Breed</th>
-                                        <th>Birth Date</th>
-                                        <th>Age</th>
-                                        <th>Sex</th>
-                                        <th>Weight (kg)</th>
-                                        <th>Manager Name</th>
-                                        <th>Manager Phone</th>
-                                        <th>Physical Examination</th>
-                                        <th>Edit</th>
-                                        <th>Delete</th>
-                                        <th>Data History</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($animalsData as $key => $item)
+                            <div style="overflow-x: auto;">
+                                <table class="table table-bordered">
+                                    <thead class="table table-primary">
                                         <tr>
-                                            {{-- <td>{{ $item['processed_at'] ?? 'N/A' }}</td> --}}
-                                            <td>{{ $item['animalid'] }}</td>
-                                            <td>{{ $item['species'] }}</td>
-                                            <td>{{ $item['breed'] }}</td>
-                                            <td>{{ $item['bdate'] }}</td>
-                                            <td>{{ $item['age'] }}</td> <!-- Display pre-calculated age -->
-                                            <td>{{ $item['sex'] }}</td>
-                                            <td>{{ $item['weight'] }}</td>
-                                            <td>{{ $item['mname'] }}</td>
-                                            <td>{{ $item['mphone'] }}</td>
-                                            <td>
-                                                <button class="btn btn-sm btn-info phyExamination-button"
-                                                    data-animalid="{{ $key }}">
-                                                    Details
-                                                </button>
-                                                <!-- Check-up Button -->
-                                                <button class="btn btn-sm btn-success checkup-button"
-                                                    onclick="window.location='{{ route('checkup-animal', ['livestockUid' => $key]) }}'">
-                                                    Check-up
-                                                </button>
-                                            </td>
-
-                                            <td>
-                                                <a href="{{ route('edit-animalData', ['livestockUid' => $key]) }}"
-                                                    class="btn btn-sm btn-warning">Edit</a>
-                                            </td>
-
-                                            <td>
-                                                <form action="{{ url('delete-animalData/' . $key) }}" method="POST"
-                                                    class="delete-form">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="button" class="btn btn-sm btn-danger delete-button"
-                                                        data-action="{{ url('delete-animalData/' . $key) }}">
-                                                        Delete
-                                                    </button>
-                                                </form>
-                                            </td>
-
-                                            <td>
-                                                <button class="btn btn-sm btn-primary history-button"
-                                                    data-animalid="{{ $item['animalid'] }}">
-                                                    View
-                                                </button>
-                                            </td>
+                                            {{-- <th>Date</th> --}}
+                                            <th>Livestock ID</th>
+                                            <th>Species</th>
+                                            <th>Breed</th>
+                                            <th>Birth Date</th>
+                                            <th>Age</th>
+                                            <th>Sex</th>
+                                            <th>Manager Name</th>
+                                            <th>Manager Phone</th>
+                                            <th>Edit</th>
+                                            <th>Physical Checkup</th>
+                                            <th>Delete</th>
                                         </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($animalsData as $key => $item)
+                                            <tr>
+                                                {{-- <td>{{ $item['processed_at'] ?? 'N/A' }}</td> --}}
+                                                <td>{{ $item['animalid'] }}</td>
+                                                <td>{{ $item['species'] }}</td>
+                                                <td>{{ $item['breed'] }}</td>
+                                                <td>{{ $item['bdate'] }}</td>
+                                                <td>{{ $item['age'] }}</td> <!-- Display pre-calculated age -->
+                                                <td>{{ $item['sex'] }}</td>
+                                                <td>{{ $item['mname'] }}</td>
+                                                <td>{{ $item['mphone'] }}</td>
+                                                <td>
+                                                    @if ($userRole === 'farmer')
+                                                        <a href="{{ route('edit-animalData', ['livestockUid' => $key]) }}"
+                                                            class="btn btn-sm btn-warning">Edit</a>
+                                                    @else
+                                                        <button class="btn btn-sm btn-secondary restricted-button"
+                                                            data-message="Only farmers can edit livestock records.">Edit</button>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-info phyExamination-button"
+                                                        data-animalid="{{ $key }}">Details</button>
+                                                    @if ($userRole === 'clinician')
+                                                        <button class="btn btn-sm btn-success checkup-button"
+                                                            onclick="window.location='{{ route('checkup-animal', ['livestockUid' => $key]) }}'">Checkup</button>
+                                                    @else
+                                                        <button class="btn btn-sm btn-secondary restricted-button"
+                                                            data-message="Only clinicians can perform checkups.">Checkup</button>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @if ($userRole === 'farmer')
+                                                        <form action="{{ url('delete-animalData/' . $key) }}"
+                                                            method="POST" class="delete-form">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="button"
+                                                                class="btn btn-sm btn-danger delete-button"
+                                                                data-action="{{ url('delete-animalData/' . $key) }}">Delete</button>
+                                                        </form>
+                                                    @else
+                                                        <button class="btn btn-sm btn-secondary restricted-button"
+                                                            data-message="Only farmers can delete livestock records.">Delete</button>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
                         @endif
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- History Modal -->
-    <div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="historyModalLabel">Livestock History</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="historyModalBody">
-                    <!-- History details will be dynamically loaded here -->
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -127,7 +106,7 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="phyExaminationModalLabel">Physical Examination Details</h5>
+                    <h5 class="modal-title" id="phyExaminationModalLabel">Physical Checkup Details</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="phyExaminationModalBody" style="overflow-x: auto; white-space: nowrap;">
@@ -136,66 +115,6 @@
             </div>
         </div>
     </div>
-
-
-    <script>
-        // Attach click event to history buttons
-        document.querySelectorAll('.history-button').forEach(button => {
-            button.addEventListener('click', () => {
-                const animalId = button.getAttribute('data-animalid');
-
-                fetch(`/get-animal-history/${animalId}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Failed to fetch history');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        const modalBody = document.getElementById('historyModalBody');
-                        if (Object.keys(data).length === 0) {
-                            modalBody.innerHTML = `<p>No history available for this livestock.</p>`;
-                        } else {
-                            modalBody.innerHTML = `<table class="table table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th>Timestamp</th>
-                                        <th>Livestock ID</th>
-                                        <th>Species</th>
-                                        <th>Breed</th>
-                                        <th>Sex</th>
-                                        <th>Weight</th>
-                                        <th>Manager Name</th>
-                                        <th>Manager Phone</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${Object.entries(data).map(([timestamp, history]) => `
-                                                                                                                                <tr>
-                                                                                                                                    <td>${timestamp}</td>
-                                                                                                                                    <td>${history.animalid}</td>
-                                                                                                                                    <td>${history.species}</td>
-                                                                                                                                    <td>${history.breed}</td>
-                                                                                                                                    <td>${history.sex}</td>
-                                                                                                                                    <td>${history.weight}</td>
-                                                                                                                                    <td>${history.mname}</td>
-                                                                                                                                    <td>${history.mphone}</td>
-                                                                                                                                </tr>
-                                                                                                                            `).join('')}
-                                </tbody>
-                            </table>`;
-                        }
-                        const modal = new bootstrap.Modal(document.getElementById('historyModal'));
-                        modal.show();
-                    })
-                    .catch(error => {
-                        console.error('Error fetching history:', error);
-                        alert('Failed to fetch history.');
-                    });
-            });
-        });
-    </script>
-
 
     <!-- Custom Delete Confirmation Modal -->
     <div class="modal fade" id="deleteConfirmationModal" tabindex="-1" aria-labelledby="deleteConfirmationModalLabel"
@@ -287,14 +206,16 @@
 
                         // Check if the data is empty
                         if (Object.keys(data).length === 0) {
-                            modalBody.innerHTML = '<p>This livestock has not undergone any physical examination yet. Click Check-up button to add.</p>';
+                            modalBody.innerHTML =
+                                '<p>This livestock has not undergone any physical checkup yet. Click Checkup button to add.</p>';
                         } else {
                             // Build a table to display the data
                             modalBody.innerHTML = `
                         <table class="table table-bordered">
                             <thead>
                                 <tr>
-                                    <th>Examined At</th>
+                                    <th>Examined Date</th>
+                                    <th>Weight (kg)</th>
                                     <th>Temperature</th>
                                     <th>General Appearance</th>
                                     <th>Mucous Membrane</th>
@@ -316,25 +237,26 @@
                                 ${Object.keys(data).map(checkupId => {
                                     const checkup = data[checkupId];
                                     return `
-                                                    <tr>
-                                                        <td>${checkup.examined_at ?? 'N/A'}</td>
-                                                        <td>${checkup.temperature ?? 'N/A'}</td>
-                                                        <td>${checkup.genApp ?? 'N/A'}</td>
-                                                        <td>${checkup.mucous ?? 'N/A'}</td>
-                                                        <td>${checkup.integument ?? 'N/A'}</td>
-                                                        <td>${checkup.nervous ?? 'N/A'}</td>
-                                                        <td>${checkup.musculoskeletal ?? 'N/A'}</td>
-                                                        <td>${checkup.eyes ?? 'N/A'}</td>
-                                                        <td>${checkup.ears ?? 'N/A'}</td>
-                                                        <td>${checkup.gastrointestinal ?? 'N/A'}</td>
-                                                        <td>${checkup.respiratory ?? 'N/A'}</td>
-                                                        <td>${checkup.cardiovascular ?? 'N/A'}</td>
-                                                        <td>${checkup.reproductive ?? 'N/A'}</td>
-                                                        <td>${checkup.urinary ?? 'N/A'}</td>
-                                                        <td>${checkup.mGland ?? 'N/A'}</td>
-                                                        <td>${checkup.lymphatic ?? 'N/A'}</td>
-                                                    </tr>
-                                                `;
+                                                                                    <tr>
+                                                                                        <td>${checkup.examined_at ?? 'N/A'}</td>
+                                                                                        <td>${checkup.weight ?? 'N/A'}</td>
+                                                                                        <td>${checkup.temperature ?? 'N/A'}</td>
+                                                                                        <td>${checkup.genApp ?? 'N/A'}</td>
+                                                                                        <td>${checkup.mucous ?? 'N/A'}</td>
+                                                                                        <td>${checkup.integument ?? 'N/A'}</td>
+                                                                                        <td>${checkup.nervous ?? 'N/A'}</td>
+                                                                                        <td>${checkup.musculoskeletal ?? 'N/A'}</td>
+                                                                                        <td>${checkup.eyes ?? 'N/A'}</td>
+                                                                                        <td>${checkup.ears ?? 'N/A'}</td>
+                                                                                        <td>${checkup.gastrointestinal ?? 'N/A'}</td>
+                                                                                        <td>${checkup.respiratory ?? 'N/A'}</td>
+                                                                                        <td>${checkup.cardiovascular ?? 'N/A'}</td>
+                                                                                        <td>${checkup.reproductive ?? 'N/A'}</td>
+                                                                                        <td>${checkup.urinary ?? 'N/A'}</td>
+                                                                                        <td>${checkup.mGland ?? 'N/A'}</td>
+                                                                                        <td>${checkup.lymphatic ?? 'N/A'}</td>
+                                                                                    </tr>
+                                                                                `;
                                 }).join('')}
                             </tbody>
                         </table>`;
@@ -353,6 +275,40 @@
             });
         });
     </script>
+
+    <!-- Restricted Action Modal -->
+    <div class="modal fade" id="restrictionModal" tabindex="-1" aria-labelledby="restrictionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content custom-modal-bg">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="restrictionModalLabel">Restricted Action!</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="restrictionMessage">
+                    <!-- Message will be injected dynamically -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Attach click event to restricted buttons
+            document.querySelectorAll('.restricted-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const message = button.getAttribute('data-message');
+                    const restrictionModal = new bootstrap.Modal(document.getElementById(
+                        'restrictionModal'));
+                    document.getElementById('restrictionMessage').textContent = message;
+                    restrictionModal.show();
+                });
+            });
+        });
+    </script>
+
 
     <script>
         function showLogoutModal() {

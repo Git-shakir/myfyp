@@ -103,8 +103,9 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <h5>Name: {{ session('firebase_user.displayName', 'N/A') }}</h5>
+                <h5>Name: {{ ucfirst(session('firebase_user.displayName', 'N/A')) }}</h5>
                 <h5>Email: {{ session('firebase_user.email', 'N/A') }}</h5>
+                <h5>Role: {{ ucfirst(session('firebase_user.role', 'N/A')) }}</h5>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -112,7 +113,6 @@
         </div>
     </div>
 </div>
-
 
 <script>
     function showLogoutModal() {

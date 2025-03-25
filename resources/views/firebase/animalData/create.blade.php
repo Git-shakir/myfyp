@@ -19,7 +19,7 @@
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
-                        <h4>Add Animal Data
+                        <h4>Add Livestock Form
                             <a href="{{ route('list-animalData') }}" class="btn btn-sm btn-danger float-end">BACK</a>
                         </h4>
                     </div>
@@ -31,7 +31,7 @@
                             <!-- Auto-fill UID if session exists -->
                             <input type="hidden" name="uid" value="{{ session('new_uid') ?? request('uid') }}">
 
-                            <div class="form-group">
+                            <div class="form-group mb-3">
                                 <label>Livestock ID</label>
                                 <input type="text" name="animalid" class="form-control" value="{{ old('animalid') }}"
                                     placeholder="100">
@@ -77,15 +77,6 @@
                                     <option value="Female" {{ old('sex') == 'Female' ? 'selected' : '' }}>Female</option>
                                 </select>
                                 @error('sex')
-                                    <small class="text-danger">{{ $message }}</small>
-                                @enderror
-                            </div>
-
-                            <div class="form-group mb-3">
-                                <label>Weight (kg)</label>
-                                <input type="text" name="weight" class="form-control" value="{{ old('weight') }}"
-                                    placeholder="120">
-                                @error('weight')
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
                             </div>
@@ -178,4 +169,51 @@
             </div>
         </div>
     </div>
+
+    {{-- error popup modal --}}
+    <div class="modal fade" id="validationModal" tabindex="-1" aria-labelledby="validationModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="validationModalLabel">Form Submission Error</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Please fulfill all the required fields before submitting the form.</p>
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            @if ($errors->any())
+                var validationModal = new bootstrap.Modal(document.getElementById('validationModal'));
+                validationModal.show();
+            @endif
+        });
+    </script>
+
+    <style>
+        .modal-content {
+            border-radius: 10px;
+        }
+
+        .modal-header {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .modal-body {
+            font-size: 16px;
+        }
+    </style>
 @endsection

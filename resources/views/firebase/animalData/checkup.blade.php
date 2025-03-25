@@ -6,7 +6,7 @@
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
-                        <h4>Livestock Checkup
+                        <h4>Livestock Checkup Form
                             <a href="{{ route('list-animalData') }}" class="btn btn-sm btn-danger float-end">BACK</a>
                         </h4>
                     </div>
@@ -18,9 +18,18 @@
                             <input type="hidden" name="livestockUid" value="{{ $livestockUid }}">
 
                             <div class="form-group mb-3">
-                                <label>Temperature</label>
+                                <label>Weight (kg)</label>
+                                <input type="text" name="weight" class="form-control" value="{{ old('weight', $latestWeight) }}"
+                                    placeholder="120.0">
+                                @error('weight')
+                                    <small class="text-danger">{{ $message }}</small>
+                                @enderror
+                            </div>
+
+                            <div class="form-group mb-3">
+                                <label>Temperature (°C)</label>
                                 <input type="text" name="temperature" class="form-control"
-                                    value="{{ old('temperature') }}" placeholder="38.5°C">
+                                    value="{{ old('temperature') }}" placeholder="38.5">
                                 @error('temperature')
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror

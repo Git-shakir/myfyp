@@ -47,6 +47,7 @@ class AuthController extends Controller
                     'firebase_user' => [
                         'email' => $firebaseUser->email,
                         'displayName' => $firebaseUser->displayName ?? 'N/A',
+                        'role' => $firebaseUser->customClaims['role'] ?? 'N/A',
                     ]
                 ]);
 
@@ -78,6 +79,7 @@ class AuthController extends Controller
             'email' => ['required', 'email', new \App\Rules\UniqueFirebaseUser($firebaseService)],
             'password' => 'required|min:6|confirmed',
             'name' => 'required|string|max:255',
+            'role' => 'required|in:farmer,clinician',
         ]);
 
         try {
@@ -88,9 +90,14 @@ class AuthController extends Controller
             ];
             $createdUser = $this->firebaseAuth->createUser($userProperties);
 
-            // Step 2: Update the display name
+            // Step 2: Update the display name and role
             $this->firebaseAuth->updateUser($createdUser->uid, [
                 'displayName' => $request->name,
+            ]);
+
+            // Step 3: Save the role in a custom claims
+            $this->firebaseAuth->setCustomUserClaims($createdUser->uid, [
+                'role' => $request->role,
             ]);
 
             return redirect('/login')->with('status', 'Registration successful! Please log in.');
@@ -143,4 +150,5 @@ class AuthController extends Controller
             return back()->with('error', 'An error occurred while sending the reset email. Please try again.');
         }
     }
+
 }
